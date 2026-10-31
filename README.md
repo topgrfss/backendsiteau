@@ -1,23 +1,48 @@
-# backendsiteau
+# Siteau — Панель товаров и сроков годности
 
-Backend API service with item catalog, scan lookup, authentication, and inventory management.
+Веб-панель и REST API сервис для управления остатками товаров, мониторинга сроков годности и работы со справочником PLU/артикулов.
 
-## Features & Endpoints
+## Основные возможности
 
-- `POST /login` — Authenticate with role-based passwords (`admin`, `editor`, `viewer`) and receive bearer tokens.
-- `GET /items/scan?code=<PLU>` — Look up items from `catalog.json` by PLU.
-- `GET /items` — List items sorted by end date ascending and ID descending (Viewer+).
-- `GET /items/:id` — Get item details by ID (Viewer+).
-- `POST /items` — Create a new item with automatic catalog autofill and validation (Editor+).
-- `PUT /items/:id` — Update existing item (Editor+).
-- `DELETE /items/:id` — Delete item by ID (Admin).
-- Honeypot routes (`/wp-admin`, `/wp-login.php`, `/.env`, etc.) returning status 418.
+- 📦 **Мониторинг склада и сроков годности**:
+  - Карточки товаров со статусом свежести:
+    - 🟢 Свежий (> 3 дней)
+    - 🟡 Внимание! Истекает скоро (&le; 3 дней)
+    - 🔴 Истёк срок годности
+  - Метрики: общее количество партий, суммарный вес/количество, индикаторы просрочки.
+  - Поиск и фильтрация по статусам и названиям.
+  - Быстрое изменение количества и списание.
+- ➕ **Умное добавление товара**:
+  - Мгновенный поиск по PLU / артикулу из `catalog.json`.
+  - Автоматическое заполнение названия, срока годности и краткого описания.
+  - **Автоматический расчет даты окончания** (`date.end`) на основе даты поступления и срока годности (`shelf_life`).
+  - **Автоматическая регистрация нового товара**: если добавляемого товара нет в справочнике, он автоматически сохраняется в `catalog.json` и сразу доступен для будущих поисков.
+- 🔍 **Сканер по PLU**:
+  - Быстрая проверка информации по штрихкоду/PLU и карточка для принятия на склад.
+- 📚 **Справочник каталога**:
+  - Просмотр всех позиций `catalog.json` с краткими описаниями.
+- 🔐 **Ролевая модель (RBAC)**:
+  - `Admin` (полный доступ, включая удаление) — токен `token-admin-secret-777`
+  - `Editor` (создание и редактирование) — токен `token-editor-secret-555`
+  - `Viewer` (просмотр товаров) — токен `token-viewer-secret-111`
 
-## Running the Application
+## Запуск приложения
 
 ```bash
 npm install
 npm run dev
 ```
 
-Server listens on port 3000 (`0.0.0.0:3000`).
+Сервер запускается на `http://localhost:3000` (`0.0.0.0:3000`).
+
+## API Эндпоинты
+
+- `POST /login` — авторизация по паролю (`admin`, `editor`, `viewer`)
+- `GET /items` — список партий товаров (Viewer+)
+- `GET /items/:id` — детальная информация о партии (Viewer+)
+- `POST /items` — добавление партии с авто-сохранением в каталог (Editor+)
+- `PUT /items/:id` — обновление партии (Editor+)
+- `DELETE /items/:id` — удаление партии (Admin)
+- `GET /items/scan?code=<PLU>` — поиск товара в каталоге
+- `GET /catalog` — список всех товаров в справочнике
+- `POST /catalog` — добавление позиции в справочник (Editor+)

@@ -10,6 +10,9 @@ export interface Item {
   articul: string;
   quantity: number;
   date: ItemDate;
+  description?: string;
+  weight?: number;
+  shelf_life?: number;
 }
 
 export interface CatalogItem {
@@ -18,6 +21,7 @@ export interface CatalogItem {
   name: string;
   weight?: number;
   shelf_life?: number;
+  description?: string;
 }
 
 export interface ScanResult {
@@ -25,6 +29,8 @@ export interface ScanResult {
   name?: string;
   weight?: number;
   shelf_life?: number;
+  description?: string;
+  articul?: string;
 }
 
 export interface AuthRequest {
