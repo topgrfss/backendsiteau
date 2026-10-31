@@ -1,13 +1,71 @@
+import Database from 'better-sqlite3';
 import { Item } from './models.js';
 import { catalogService } from './catalog.js';
+import { config } from './config.js';
+
+interface ItemRow {
+  id: number;
+  name: string;
+  plu: string | null;
+  articul: string | null;
+  quantity: number;
+  shelf_life: number | null;
+  weight: number | null;
+  category: string | null;
+  description: string | null;
+  date_start: string;
+  date_end: string;
+}
 
 export class ItemStorage {
-  private items: Map<number, Item> = new Map();
-  private nextId = 1;
+  private db: Database.Database;
 
-  constructor() {
-    // База склада очищена по запросу пользователя. Каталог сохранен.
-    this.items.clear();
+  constructor(dbPath?: string) {
+    const path = dbPath || config.dbPath || 'app.db';
+    this.db = new Database(path);
+    // Включаем WAL-режим для надежности и высокой скорости
+    this.db.pragma('journal_mode = WAL');
+    this.initSchema();
+  }
+
+  private initSchema(): void {
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        plu TEXT DEFAULT '',
+        articul TEXT DEFAULT '',
+        quantity REAL NOT NULL,
+        shelf_life INTEGER DEFAULT 10,
+        weight REAL DEFAULT 0,
+        category TEXT DEFAULT '',
+        description TEXT DEFAULT '',
+        date_start TEXT NOT NULL,
+        date_end TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_items_date_end ON items(date_end);
+      CREATE INDEX IF NOT EXISTS idx_items_plu ON items(plu);
+    `);
+    console.info(`[SQLite] База данных подключена: ${config.dbPath || 'app.db'}`);
+  }
+
+  private rowToItem(row: ItemRow): Item {
+    const item: Item = {
+      id: row.id,
+      name: row.name,
+      plu: row.plu || '',
+      articul: row.articul || '',
+      quantity: row.quantity,
+      shelf_life: row.shelf_life ?? 10,
+      weight: row.weight ?? 0,
+      category: row.category || '',
+      description: row.description || '',
+      date: {
+        start: row.date_start,
+        end: row.date_end
+      }
+    };
+    return this.enrichWithCatalog(item);
   }
 
   private enrichWithCatalog(item: Item): Item {
@@ -31,49 +89,82 @@ export class ItemStorage {
   }
 
   getAllItems(): Item[] {
-    const list = Array.from(this.items.values()).map(item => this.enrichWithCatalog(item));
-    // ORDER BY date(date_end) ASC, id DESC
-    return list.sort((a, b) => {
-      if (a.date.end < b.date.end) return -1;
-      if (a.date.end > b.date.end) return 1;
-      return (b.id ?? 0) - (a.id ?? 0);
-    });
+    const stmt = this.db.prepare<[], ItemRow>(`
+      SELECT id, name, plu, articul, quantity, shelf_life, weight, category, description, date_start, date_end
+      FROM items
+      ORDER BY date(date_end) ASC, id DESC
+    `);
+    const rows = stmt.all();
+    return rows.map(r => this.rowToItem(r));
   }
 
   getItemById(id: number): Item | null {
-    const item = this.items.get(id);
-    return item ? this.enrichWithCatalog(item) : null;
+    const stmt = this.db.prepare<[number], ItemRow>(`
+      SELECT id, name, plu, articul, quantity, shelf_life, weight, category, description, date_start, date_end
+      FROM items
+      WHERE id = ?
+    `);
+    const row = stmt.get(id);
+    return row ? this.rowToItem(row) : null;
   }
 
   createItem(item: Omit<Item, 'id'> | Item): number {
-    const id = this.nextId++;
-    const newItem: Item = {
-      ...item,
-      id,
-      date: { ...item.date }
-    };
-    this.items.set(id, newItem);
-    return id;
+    const stmt = this.db.prepare(`
+      INSERT INTO items (name, plu, articul, quantity, shelf_life, weight, category, description, date_start, date_end)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    const info = stmt.run(
+      item.name,
+      item.plu || '',
+      item.articul || '',
+      item.quantity,
+      item.shelf_life ?? 10,
+      item.weight ?? 0,
+      item.category || '',
+      item.description || '',
+      item.date.start,
+      item.date.end
+    );
+    return Number(info.lastInsertRowid);
   }
 
   updateItem(id: number, item: Item): boolean {
-    if (!this.items.has(id)) {
-      return false;
-    }
-    this.items.set(id, {
-      ...item,
-      id,
-      date: { ...item.date }
-    });
-    return true;
+    const stmt = this.db.prepare(`
+      UPDATE items
+      SET name = ?, plu = ?, articul = ?, quantity = ?, shelf_life = ?, weight = ?, category = ?, description = ?, date_start = ?, date_end = ?
+      WHERE id = ?
+    `);
+    const info = stmt.run(
+      item.name,
+      item.plu || '',
+      item.articul || '',
+      item.quantity,
+      item.shelf_life ?? 10,
+      item.weight ?? 0,
+      item.category || '',
+      item.description || '',
+      item.date.start,
+      item.date.end,
+      id
+    );
+    return info.changes > 0;
   }
 
   deleteItem(id: number): boolean {
-    return this.items.delete(id);
+    const stmt = this.db.prepare(`DELETE FROM items WHERE id = ?`);
+    const info = stmt.run(id);
+    return info.changes > 0;
   }
 
   clear(): void {
-    this.items.clear();
+    this.db.exec(`
+      DELETE FROM items;
+      DELETE FROM sqlite_sequence WHERE name = 'items';
+    `);
+  }
+
+  close(): void {
+    this.db.close();
   }
 }
 

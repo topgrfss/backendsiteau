@@ -642,6 +642,7 @@ export function renderDashboardHtml(config: AppConfig): string {
     </a>
     <div class="header-actions">
       <a href="/showcase" class="btn-header">🌟 Витрина</a>
+      <button type="button" class="btn-header" style="color:var(--accent); border-color:#0284c7;" onclick="triggerTelegramTest()" title="Проверить бота и отправить отчет в Telegram">✈️ TG</button>
       <span id="roleBadge" class="role-badge" style="display: none;"></span>
       <button id="authBtn" class="btn-action" style="padding:5px 10px;" onclick="showAuthModal(true)">🔑 Войти</button>
     </div>
@@ -691,6 +692,20 @@ export function renderDashboardHtml(config: AppConfig): string {
             <div class="stat-label">Истекают &le;3д</div>
           </div>
         </div>
+      </div>
+
+      <!-- Telegram Информационный блок с кнопкой отправки -->
+      <div class="telegram-banner" style="background:#0c1524; border:1px solid #1e3a5f; border-radius:10px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:1.3rem;">✈️</span>
+          <div>
+            <div style="font-size:0.86rem; font-weight:700; color:#fff;">Telegram-уведомления (в 6:00 утра)</div>
+            <div style="font-size:0.73rem; color:var(--text-muted);">Авто-отчет по партиям со сроком годности &le; 3 дней</div>
+          </div>
+        </div>
+        <button type="button" class="btn-action" style="padding:7px 14px; background:#1e293b; color:#38bdf8; border-color:#0284c7; font-weight:700; font-size:0.8rem;" onclick="triggerTelegramTest()">
+          Отправить отчет сейчас
+        </button>
       </div>
 
       <div class="filter-bar">
