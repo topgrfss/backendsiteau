@@ -1,0 +1,6 @@
+{
+  "name": "backendsiteau",
+  "description": "Backend API service with item catalog, scan lookup, authentication, and inventory management.",
+  "permissions": [],
+  "capabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
