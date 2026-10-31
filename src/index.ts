@@ -6,10 +6,8 @@ import { storage } from './storage.js';
 import { validateItem } from './validator.js';
 import { requireRole } from './middleware/auth.js';
 import { Item, CatalogItem } from './models.js';
-import { renderHomeHtml } from './views/home.js';
 import { renderShowcaseHtml } from './views/showcase.js';
 import { renderDashboardHtml } from './views/dashboard.js';
-import { renderApiDocsHtml } from './views/apiDocs.js';
 
 const app = express();
 
@@ -38,32 +36,21 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-// 1. Главная страница: Технический портал
+// 1. Главный вход: перенаправление на витрину для покупателей
 app.get('/', (req: Request, res: Response) => {
   if (req.query.json === 'true' || (req.header('Accept') === 'application/json' && !req.accepts('html'))) {
     res.json({
       status: 'ok',
       name: 'backendsiteau',
       version: config.version,
-      port: config.port,
-      routes: {
-        showcase: '/showcase',
-        dashboard: '/dashboard',
-        apiDocs: '/api-docs',
-        items: '/items',
-        catalog: '/catalog',
-        scan: '/items/scan?code=<PLU>'
-      }
+      port: config.port
     });
     return;
   }
-
-  const itemsCount = storage.getAllItems().length;
-  const catalogCount = catalogService.getItemsCount();
-  res.type('html').send(renderHomeHtml(config, itemsCount, catalogCount));
+  res.redirect('/showcase');
 });
 
-// 2. Витрина товаров (/showcase, /vitrine, /storefront)
+// 2. Витрина товаров (/showcase, /vitrine, /storefront) — чисто клиентская
 const showcaseHandler = (_req: Request, res: Response): void => {
   res.type('html').send(renderShowcaseHtml(config));
 };
@@ -71,17 +58,12 @@ app.get('/showcase', showcaseHandler);
 app.get('/vitrine', showcaseHandler);
 app.get('/storefront', showcaseHandler);
 
-// 3. Панель управления складом (/dashboard, /admin)
+// 3. Панель управления складом (/admin, /dashboard) — доступ с авторизацией
 const dashboardHandler = (_req: Request, res: Response): void => {
   res.type('html').send(renderDashboardHtml(config));
 };
-app.get('/dashboard', dashboardHandler);
 app.get('/admin', dashboardHandler);
-
-// 4. API документация (/api-docs)
-app.get('/api-docs', (_req: Request, res: Response) => {
-  res.type('html').send(renderApiDocsHtml(config));
-});
+app.get('/dashboard', dashboardHandler);
 
 // ======================= REST API =======================
 
@@ -137,6 +119,17 @@ const addCatalogHandler = (req: Request, res: Response): void => {
 app.post('/catalog', requireRole('editor'), addCatalogHandler);
 app.post('/api/catalog', requireRole('editor'), addCatalogHandler);
 
+// DELETE /catalog/:plu - удаление позиции из каталога (Admin)
+app.delete('/catalog/:plu', requireRole('admin'), (req: Request, res: Response) => {
+  const plu = String(req.params.plu);
+  const deleted = catalogService.deleteCatalogItem(plu);
+  if (!deleted) {
+    res.status(404).json({ error: 'Позиция не найдена в каталоге' });
+    return;
+  }
+  res.status(200).json({ message: 'Позиция успешно удалена из каталога' });
+});
+
 // GET /items/scan - поиск товара в каталоге по PLU
 const scanHandler = (req: Request, res: Response): void => {
   const code = req.query.code;
@@ -157,6 +150,7 @@ const scanHandler = (req: Request, res: Response): void => {
     weight: entry.weight,
     shelf_life: entry.shelfLife,
     description: entry.description,
+    category: entry.category,
     articul: entry.articul
   });
 };
@@ -210,7 +204,7 @@ const createItemHandler = (req: Request, res: Response): void => {
     return;
   }
 
-  // Если товара нет в каталоге, регистрируем его как новый в каталоге
+  // Если товара нет в каталоге, регистрируем его как новый в каталоге без заглушек
   const existingCat = catalogService.findCatalogItem(item.plu, item.articul);
   if (!existingCat) {
     let calculatedShelfLife = 10;
@@ -226,14 +220,25 @@ const createItemHandler = (req: Request, res: Response): void => {
       articul: item.articul || null,
       name: item.name,
       shelf_life: item.shelf_life || calculatedShelfLife,
-      description: item.description || `Товар "${item.name}" (добавлен оператором)`,
+      description: item.description && item.description.trim() ? item.description.trim() : '',
+      category: item.category || 'Рыба и морепродукты',
       weight: item.weight || 0
     }, true);
-  } else if (item.description && !existingCat.description) {
-    catalogService.addOrUpdateCatalogItem({
-      ...existingCat,
-      description: item.description
-    }, true);
+  } else {
+    // Обновляем описание или категорию, если оператор заполнил их
+    let updated = false;
+    const catUpdate = { ...existingCat };
+    if (item.description && item.description.trim() !== (existingCat.description || '')) {
+      catUpdate.description = item.description.trim();
+      updated = true;
+    }
+    if (item.category && item.category !== existingCat.category) {
+      catUpdate.category = item.category;
+      updated = true;
+    }
+    if (updated) {
+      catalogService.addOrUpdateCatalogItem(catUpdate, true);
+    }
   }
 
   const id = storage.createItem(item);
@@ -269,10 +274,12 @@ const updateItemHandler = (req: Request, res: Response): void => {
 
   if (item.plu || item.articul) {
     const existing = catalogService.findCatalogItem(item.plu, item.articul);
-    if (existing && item.description && item.description !== existing.description) {
+    if (existing) {
       catalogService.addOrUpdateCatalogItem({
         ...existing,
-        description: item.description
+        name: item.name || existing.name,
+        category: item.category || existing.category,
+        description: item.description !== undefined ? item.description : (existing.description || '')
       }, true);
     }
   }
@@ -290,7 +297,7 @@ const updateItemHandler = (req: Request, res: Response): void => {
 app.put('/items/:id', requireRole('editor'), updateItemHandler);
 app.put('/api/items/:id', requireRole('editor'), updateItemHandler);
 
-// DELETE /items/:id - удаление товара
+// DELETE /items/:id - удаление товара со склада
 const deleteItemHandler = (req: Request, res: Response): void => {
   const idStr = String(req.params.id);
   const id = parseInt(idStr, 10);
@@ -313,7 +320,7 @@ const deleteItemHandler = (req: Request, res: Response): void => {
 app.delete('/items/:id', requireRole('admin'), deleteItemHandler);
 app.delete('/api/items/:id', requireRole('admin'), deleteItemHandler);
 
-// Ловушки для сканеров / ботов (honeypot)
+// Ловушки для ботов (honeypot)
 const trollBotHandler = (_req: Request, res: Response): void => {
   res.status(418).type('text/plain; charset=utf-8');
   res.write("Troll level 1... Holding your thread...\n");

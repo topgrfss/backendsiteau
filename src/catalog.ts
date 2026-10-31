@@ -7,6 +7,7 @@ export interface ScanCatalogEntry {
   weight: number;
   shelfLife: number;
   description: string;
+  category: string;
   articul: string;
 }
 
@@ -21,7 +22,7 @@ export class CatalogService {
       : path.resolve(process.cwd(), filePath);
 
     if (!fs.existsSync(this.filePath)) {
-      console.warn(`[Catalog] Файл справочника не найден: ${this.filePath}. Автозаполнение отключено.`);
+      console.warn(`[Catalog] Файл справочника не найден: ${this.filePath}.`);
       return;
     }
 
@@ -31,9 +32,9 @@ export class CatalogService {
       this.items = parsed;
 
       this.rebuildScanCatalog();
-      console.info(`[Catalog] Справочник успешно загружен: ${this.items.length} товаров, доступных для поиска по PLU: ${this.scanCatalog.size}`);
+      console.info(`[Catalog] Справочник успешно загружен: ${this.items.length} товаров.`);
     } catch (err) {
-      console.error(`[Catalog] Ошибка загрузки справочника из ${this.filePath}:`, err);
+      console.error(`[Catalog] Ошибка загрузки справочника:`, err);
     }
   }
 
@@ -47,6 +48,7 @@ export class CatalogService {
           weight: typeof item.weight === 'number' ? item.weight : 0,
           shelfLife: typeof item.shelf_life === 'number' ? item.shelf_life : 0,
           description: item.description || '',
+          category: item.category || 'Рыба и морепродукты',
           articul: item.articul ? String(item.articul).trim() : ''
         });
       }
@@ -57,9 +59,9 @@ export class CatalogService {
     try {
       const content = JSON.stringify(this.items, null, 4);
       fs.writeFileSync(this.filePath, content, 'utf-8');
-      console.info(`[Catalog] Справочник успешно сохранен в файл ${this.filePath} (${this.items.length} записей)`);
+      console.info(`[Catalog] Справочник успешно сохранен (${this.items.length} записей).`);
     } catch (err) {
-      console.error(`[Catalog] Ошибка сохранения справочника в ${this.filePath}:`, err);
+      console.error(`[Catalog] Ошибка сохранения справочника:`, err);
     }
   }
 
@@ -88,6 +90,8 @@ export class CatalogService {
     const plu = newEntry.plu ? String(newEntry.plu).trim() : '';
     const articul = newEntry.articul ? String(newEntry.articul).trim() : '';
     const name = (newEntry.name || '').trim();
+    const desc = (newEntry.description && newEntry.description.trim()) || '';
+    const category = (newEntry.category && newEntry.category.trim()) || 'Рыба и морепродукты';
 
     const existingIndex = this.items.findIndex(item => {
       const itemPlu = item.plu ? String(item.plu).trim() : '';
@@ -106,7 +110,8 @@ export class CatalogService {
         articul: articul || existing.articul,
         weight: typeof newEntry.weight === 'number' ? newEntry.weight : existing.weight,
         shelf_life: typeof newEntry.shelf_life === 'number' ? newEntry.shelf_life : existing.shelf_life,
-        description: (newEntry.description && newEntry.description.trim()) || existing.description || ''
+        description: desc !== '' ? desc : (existing.description || ''),
+        category: category !== 'Рыба и морепродукты' ? category : (existing.category || category)
       };
       this.items[existingIndex] = merged;
       this.rebuildScanCatalog();
@@ -119,14 +124,31 @@ export class CatalogService {
         name: name || (plu ? `Товар PLU ${plu}` : `Товар ${articul}`),
         weight: typeof newEntry.weight === 'number' ? newEntry.weight : 0,
         shelf_life: typeof newEntry.shelf_life === 'number' ? newEntry.shelf_life : 10,
-        description: (newEntry.description && newEntry.description.trim()) || 'Товар добавлен оператором'
+        description: desc, // Пустое, если нет описания (никаких 'добавлено оператором')
+        category: category
       };
       this.items.push(created);
       this.rebuildScanCatalog();
       if (persist) this.saveToFile();
-      console.info(`[Catalog] Новый товар зарегистрирован в справочнике: PLU="${plu}", Название="${created.name}"`);
       return created;
     }
+  }
+
+  deleteCatalogItem(pluOrArticul: string): boolean {
+    const target = pluOrArticul.trim();
+    const initLen = this.items.length;
+    this.items = this.items.filter(item => {
+      const iPlu = (item.plu || '').toString().trim();
+      const iArt = (item.articul || '').toString().trim();
+      return iPlu !== target && iArt !== target;
+    });
+
+    if (this.items.length !== initLen) {
+      this.rebuildScanCatalog();
+      this.saveToFile();
+      return true;
+    }
+    return false;
   }
 
   autoFill(item: Item): void {
@@ -146,6 +168,9 @@ export class CatalogService {
       }
       if (!item.description && matched.description) {
         item.description = matched.description;
+      }
+      if (!item.category && matched.category) {
+        item.category = matched.category;
       }
       if (typeof item.shelf_life !== 'number' && typeof matched.shelf_life === 'number') {
         item.shelf_life = matched.shelf_life;

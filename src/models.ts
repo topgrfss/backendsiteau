@@ -8,9 +8,10 @@ export interface Item {
   name: string;
   plu: string;
   articul: string;
-  quantity: number;
+  quantity: number; // вес в кг
   date: ItemDate;
   description?: string;
+  category?: string;
   weight?: number;
   shelf_life?: number;
 }
@@ -22,6 +23,7 @@ export interface CatalogItem {
   weight?: number;
   shelf_life?: number;
   description?: string;
+  category?: string;
 }
 
 export interface ScanResult {
@@ -30,6 +32,7 @@ export interface ScanResult {
   weight?: number;
   shelf_life?: number;
   description?: string;
+  category?: string;
   articul?: string;
 }
 

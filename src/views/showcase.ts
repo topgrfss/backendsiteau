@@ -20,7 +20,6 @@ export function renderShowcaseHtml(config: AppConfig): string {
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
-      --salmon: #fb7185;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -31,6 +30,7 @@ export function renderShowcaseHtml(config: AppConfig): string {
       display: flex;
       flex-direction: column;
     }
+    /* Чисто клиентская шапка: никаких ссылок на админку и склад */
     header {
       background: #0d1322;
       border-bottom: 1px solid var(--card-border);
@@ -52,51 +52,53 @@ export function renderShowcaseHtml(config: AppConfig): string {
       color: inherit;
     }
     .brand-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
       background: linear-gradient(135deg, #0284c7, #38bdf8);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 22px;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
     }
     .brand-title {
-      font-size: 1.2rem;
+      font-size: 1.25rem;
       font-weight: 800;
       color: #fff;
+      letter-spacing: -0.02em;
     }
-    .header-links {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    .brand-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
     }
-    .btn-header {
-      background: #172133;
-      border: 1px solid var(--card-border);
-      color: #cbd5e1;
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-size: 0.88rem;
-      font-weight: 600;
-      text-decoration: none;
-      transition: all 0.2s;
-      cursor: pointer;
-    }
-    .btn-header:hover { color: #fff; background: #1e293b; border-color: var(--accent); }
     .btn-cart {
       background: linear-gradient(135deg, #0284c7, #38bdf8);
       color: #090d16 !important;
       font-weight: 700;
       border: none;
+      padding: 9px 18px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      cursor: pointer;
       display: flex;
       align-items: center;
       gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-cart:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .cart-badge {
+      background: #090d16;
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
     }
     .hero-banner {
       background: radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.15) 0%, rgba(9, 13, 22, 0) 70%), #0d1322;
       border-bottom: 1px solid var(--card-border);
-      padding: 44px 24px 36px;
+      padding: 40px 24px 32px;
       text-align: center;
     }
     .hero-tag {
@@ -109,21 +111,22 @@ export function renderShowcaseHtml(config: AppConfig): string {
       border-radius: 20px;
       font-size: 0.8rem;
       font-weight: 700;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       border: 1px solid rgba(56, 189, 248, 0.3);
     }
     .hero-h1 {
       font-size: 2.2rem;
       font-weight: 800;
       color: #fff;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       letter-spacing: -0.02em;
     }
     .hero-sub {
       color: var(--text-muted);
       font-size: 1rem;
       max-width: 620px;
-      margin: 0 auto 28px;
+      margin: 0 auto;
+      line-height: 1.5;
     }
     .controls-wrapper {
       max-width: 1200px;
@@ -133,16 +136,8 @@ export function renderShowcaseHtml(config: AppConfig): string {
       flex-direction: column;
       gap: 16px;
     }
-    .search-row {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    .search-bar {
-      flex: 1;
-      min-width: 280px;
-      position: relative;
-    }
+    .search-row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .search-bar { flex: 1; min-width: 280px; position: relative; }
     .search-input {
       width: 100%;
       background: var(--card-bg);
@@ -155,19 +150,8 @@ export function renderShowcaseHtml(config: AppConfig): string {
       transition: border-color 0.2s;
     }
     .search-input:focus { border-color: var(--accent); }
-    .search-icon {
-      position: absolute;
-      left: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-muted);
-    }
-    .cat-chips {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding-bottom: 4px;
-    }
+    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+    .cat-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; }
     .cat-chip {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -181,11 +165,7 @@ export function renderShowcaseHtml(config: AppConfig): string {
       transition: all 0.2s;
     }
     .cat-chip:hover { color: #fff; border-color: var(--accent); }
-    .cat-chip.active {
-      background: var(--accent);
-      color: #090d16;
-      border-color: var(--accent);
-    }
+    .cat-chip.active { background: var(--accent); color: #090d16; border-color: var(--accent); }
     main {
       flex: 1;
       max-width: 1200px;
@@ -207,7 +187,6 @@ export function renderShowcaseHtml(config: AppConfig): string {
       flex-direction: column;
       gap: 14px;
       transition: all 0.25s;
-      position: relative;
     }
     .prod-card:hover {
       transform: translateY(-3px);
@@ -230,27 +209,28 @@ export function renderShowcaseHtml(config: AppConfig): string {
       justify-content: center;
       font-size: 24px;
       border: 1px solid var(--card-border);
+      flex-shrink: 0;
     }
     .prod-title {
-      font-size: 1.18rem;
+      font-size: 1.2rem;
       font-weight: 700;
       color: #fff;
       text-transform: capitalize;
       line-height: 1.3;
     }
-    .prod-badge {
+    .prod-category {
       display: inline-block;
-      font-size: 0.72rem;
+      font-size: 0.74rem;
       padding: 2px 8px;
       border-radius: 4px;
       font-weight: 700;
-      font-family: monospace;
       background: #0d1322;
       color: var(--accent);
       border: 1px solid var(--card-border);
+      margin-top: 4px;
     }
     .prod-desc {
-      font-size: 0.86rem;
+      font-size: 0.88rem;
       color: #94a3b8;
       line-height: 1.5;
       background: #090d16;
@@ -266,11 +246,10 @@ export function renderShowcaseHtml(config: AppConfig): string {
       padding: 10px 14px;
       border-radius: 8px;
       border: 1px solid var(--card-border);
-      font-size: 0.82rem;
     }
     .spec-item { display: flex; flex-direction: column; }
     .spec-label { color: var(--text-muted); font-size: 0.72rem; }
-    .spec-val { color: #fff; font-weight: 700; font-size: 0.92rem; }
+    .spec-val { color: #fff; font-weight: 700; font-size: 0.95rem; }
     .exp-pill {
       font-size: 0.8rem;
       padding: 6px 12px;
@@ -287,10 +266,10 @@ export function renderShowcaseHtml(config: AppConfig): string {
       background: #172133;
       border: 1px solid var(--card-border);
       color: #fff;
-      padding: 10px 16px;
+      padding: 11px 16px;
       border-radius: 8px;
       font-weight: 700;
-      font-size: 0.88rem;
+      font-size: 0.9rem;
       cursor: pointer;
       transition: all 0.2s;
       display: flex;
@@ -300,11 +279,10 @@ export function renderShowcaseHtml(config: AppConfig): string {
       margin-top: auto;
     }
     .prod-btn:hover { background: var(--accent); color: #090d16; border-color: var(--accent); }
-    /* Cart Modal */
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.7);
+      background: rgba(0,0,0,0.75);
       backdrop-filter: blur(4px);
       display: none;
       align-items: center;
@@ -330,13 +308,7 @@ export function renderShowcaseHtml(config: AppConfig): string {
       padding-bottom: 12px;
     }
     .modal-title { font-size: 1.25rem; font-weight: 700; color: #fff; }
-    .modal-close {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-size: 1.5rem;
-      cursor: pointer;
-    }
+    .modal-close { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
     .cart-items-list {
       max-height: 280px;
       overflow-y: auto;
@@ -373,28 +345,24 @@ export function renderShowcaseHtml(config: AppConfig): string {
 </head>
 <body>
   <header>
-    <a href="/" class="brand">
+    <a href="/showcase" class="brand">
       <div class="brand-icon">🐟</div>
       <div>
         <div class="brand-title">Siteau Seafood</div>
-        <div style="font-size:0.75rem; color:var(--text-muted);">Витрина свежих морепродуктов</div>
+        <div class="brand-sub">Свежая рыба и морепродукты</div>
       </div>
     </a>
-    <div class="header-links">
-      <a href="/" class="btn-header">🏠 Портал</a>
-      <a href="/dashboard" class="btn-header">📦 Панель склада</a>
-      <button class="btn-header btn-cart" onclick="openCart()">
-        <span>🛒 Заявка</span>
-        <span id="cartCount" style="background:#090d16; color:#fff; padding:2px 8px; border-radius:12px; font-size:0.75rem;">0</span>
-      </button>
-    </div>
+    <button class="btn-cart" onclick="openCart()">
+      <span>🛒 Заявка</span>
+      <span id="cartCount" class="cart-badge">0</span>
+    </button>
   </header>
 
   <section class="hero-banner">
-    <div class="hero-tag">✨ Свежие поступления и витрина</div>
-    <h1 class="hero-h1">Витрина рыбы и морепродуктов</h1>
+    <div class="hero-tag">✨ Свежая продукция на витрине</div>
+    <h1 class="hero-h1">Витрина отборных морепродуктов</h1>
     <p class="hero-sub">
-      Отборная охлажденная рыба, северный вылов, порционные стейки и диетическое филе с гарантированным контролем свежести и сроков годности.
+      Охлажденная рыба, северный вылов, порционные стейки и филе со строгим контролем сроков свежести.
     </p>
   </section>
 
@@ -402,15 +370,11 @@ export function renderShowcaseHtml(config: AppConfig): string {
     <div class="search-row">
       <div class="search-bar">
         <span class="search-icon">🔍</span>
-        <input type="text" id="searchInput" class="search-input" placeholder="Поиск по названию (форель, лосось, треска), PLU коду или описанию..." oninput="filterShowcase()" />
+        <input type="text" id="searchInput" class="search-input" placeholder="Поиск по названию (форель, лосось, треска) или описанию..." oninput="filterShowcase()" />
       </div>
     </div>
-    <div class="cat-chips">
-      <button class="cat-chip active" data-cat="all" onclick="selectCategory('all', this)">Все позиции</button>
-      <button class="cat-chip" data-cat="salmon" onclick="selectCategory('salmon', this)">Красная рыба (Форель / Лосось)</button>
-      <button class="cat-chip" data-cat="white" onclick="selectCategory('white', this)">Белая морская рыба</button>
-      <button class="cat-chip" data-cat="fillet" onclick="selectCategory('fillet', this)">Филе и стейки</button>
-      <button class="cat-chip" data-cat="river" onclick="selectCategory('river', this)">Речная и озерная рыба</button>
+    <div id="categoryChips" class="cat-chips">
+      <button class="cat-chip active" data-cat="all" onclick="selectCategory('all', this)">Все категории</button>
     </div>
   </div>
 
@@ -427,12 +391,10 @@ export function renderShowcaseHtml(config: AppConfig): string {
         <div class="modal-title">Ваша заявка на поставку</div>
         <button class="modal-close" onclick="closeCart()">&times;</button>
       </div>
-      <div id="cartList" class="cart-items-list">
-        <!-- Cart items -->
-      </div>
+      <div id="cartList" class="cart-items-list"></div>
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-top:12px; border-top:1px solid var(--card-border); font-weight:700;">
-        <span>Итого позиций:</span>
-        <span id="cartTotal" style="color:var(--accent);">0 ед.</span>
+        <span>Итого объем:</span>
+        <span id="cartTotal" style="color:var(--accent);">0 кг</span>
       </div>
       <button class="prod-btn" style="background:var(--accent); color:#090d16; width:100%; border:none;" onclick="submitOrder()">
         ✅ Подтвердить заявку
@@ -460,10 +422,25 @@ export function renderShowcaseHtml(config: AppConfig): string {
           headers: { 'Authorization': 'Bearer ${config.viewerToken}' }
         });
         showcaseItems = await res.json();
+        buildCategories();
         filterShowcase();
       } catch (err) {
-        document.getElementById('showcaseGrid').innerHTML = '<div style="color:#ef4444; text-align:center; padding:40px;">Ошибка загрузки товаров: ' + err.message + '</div>';
+        document.getElementById('showcaseGrid').innerHTML = '<div style="color:#ef4444; text-align:center; padding:40px;">Ошибка загрузки витрины: ' + err.message + '</div>';
       }
+    }
+
+    function buildCategories() {
+      const cats = new Set();
+      showcaseItems.forEach(i => {
+        if (i.category && i.category.trim()) cats.add(i.category.trim());
+      });
+
+      const container = document.getElementById('categoryChips');
+      let html = '<button class="cat-chip active" data-cat="all" onclick="selectCategory(\\'all\\', this)">Все категории</button>';
+      cats.forEach(c => {
+        html += \`<button class="cat-chip" data-cat="\${c}" onclick="selectCategory('\${c}', this)">\${c}</button>\`;
+      });
+      container.innerHTML = html;
     }
 
     function getDaysDiff(endIso) {
@@ -488,32 +465,22 @@ export function renderShowcaseHtml(config: AppConfig): string {
       const filtered = showcaseItems.filter(item => {
         const name = (item.name || '').toLowerCase();
         const desc = (item.description || '').toLowerCase();
-        const plu = (item.plu || '').toLowerCase();
+        const cat = (item.category || '').toLowerCase();
 
-        // Категории
-        let matchCat = true;
-        if (activeCat === 'salmon') {
-          matchCat = name.includes('форель') || name.includes('лосось');
-        } else if (activeCat === 'white') {
-          matchCat = name.includes('треска') || name.includes('пикша') || name.includes('камбала') || name.includes('минтай') || name.includes('зубатка');
-        } else if (activeCat === 'fillet') {
-          matchCat = name.includes('филе') || name.includes('стейк');
-        } else if (activeCat === 'river') {
-          matchCat = name.includes('щука') || name.includes('судак') || name.includes('лещ') || name.includes('карась') || name.includes('карп') || name.includes('сазан');
+        if (activeCat !== 'all') {
+          if (cat !== activeCat.toLowerCase()) return false;
         }
 
-        if (!matchCat) return false;
         if (!q) return true;
-
-        return name.includes(q) || desc.includes(q) || plu.includes(q);
+        return name.includes(q) || desc.includes(q);
       });
 
       if (!filtered.length) {
         grid.innerHTML = \`
           <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
-            <div style="font-size: 44px; margin-bottom: 12px;">🔍</div>
-            <p style="font-size: 1.1rem; color: #fff;">По вашему запросу ничего не найдено</p>
-            <p style="font-size: 0.85rem; margin-top: 4px;">Попробуйте изменить поисковый запрос или категорию</p>
+            <div style="font-size: 44px; margin-bottom: 12px;">🌊</div>
+            <p style="font-size: 1.1rem; color: #fff;">На витрине сейчас нет таких позиций</p>
+            <p style="font-size: 0.85rem; margin-top: 4px;">Попробуйте выбрать другую категорию или изменить поиск</p>
           </div>
         \`;
         return;
@@ -537,30 +504,26 @@ export function renderShowcaseHtml(config: AppConfig): string {
         else if (lower.includes('филе')) icon = '🧊';
         else if (lower.includes('форель') || lower.includes('лосось')) icon = '🍣';
 
+        // На витрине НЕ пишем PLU и артикул, описание пишем только если есть
         return \`
           <div class="prod-card">
             <div class="prod-card-top">
               <div class="prod-icon">\${icon}</div>
               <div style="flex:1;">
                 <div class="prod-title">\${item.name}</div>
-                <div style="display:flex; gap:6px; margin-top:4px;">
-                  \${item.plu ? '<span class="prod-badge">PLU: ' + item.plu + '</span>' : ''}
-                  \${item.articul ? '<span class="prod-badge" style="color:#94a3b8;">АРТ: ' + item.articul + '</span>' : ''}
-                </div>
+                \${item.category ? '<span class="prod-category">' + item.category + '</span>' : ''}
               </div>
             </div>
 
-            <div class="prod-desc">
-              \${item.description || 'Высококачественная свежая рыбная продукция гарантированного качества.'}
-            </div>
+            \${item.description && item.description.trim() ? '<div class="prod-desc">' + item.description + '</div>' : ''}
 
             <div class="prod-specs">
               <div class="spec-item">
-                <span class="spec-label">В наличии на витрине</span>
-                <span class="spec-val" style="color:var(--accent);">\${item.quantity} ед/кг</span>
+                <span class="spec-label">В наличии</span>
+                <span class="spec-val" style="color:var(--accent);">\${item.quantity} кг</span>
               </div>
               <div class="spec-item">
-                <span class="spec-label">Годен до</span>
+                <span class="spec-label">Срок до</span>
                 <span class="spec-val">\${item.date.end}</span>
               </div>
             </div>
@@ -571,7 +534,7 @@ export function renderShowcaseHtml(config: AppConfig): string {
             </div>
 
             <button class="prod-btn" onclick="addToCart(\${item.id}, '\${encodeURIComponent(item.name)}')">
-              <span>🛒</span> Добавить в заявку
+              <span>🛒</span> Заказать в заявку
             </button>
           </div>
         \`;
@@ -582,17 +545,17 @@ export function renderShowcaseHtml(config: AppConfig): string {
       const name = decodeURIComponent(encName);
       const existing = cart.find(c => c.id === id);
       if (existing) {
-        existing.count += 1;
+        existing.weightKg += 1;
       } else {
-        cart.push({ id, name, count: 1 });
+        cart.push({ id, name, weightKg: 1 });
       }
       updateCartBadge();
       showToast('Добавлено в заявку: ' + name);
     }
 
     function updateCartBadge() {
-      const total = cart.reduce((s, c) => s + c.count, 0);
-      document.getElementById('cartCount').textContent = total;
+      const total = cart.reduce((s, c) => s + c.weightKg, 0);
+      document.getElementById('cartCount').textContent = total + ' кг';
     }
 
     function openCart() {
@@ -608,22 +571,22 @@ export function renderShowcaseHtml(config: AppConfig): string {
             </div>
             <div style="display:flex; align-items:center; gap:8px;">
               <button style="background:#1e293b; color:#fff; border:none; width:26px; height:26px; border-radius:4px; cursor:pointer;" onclick="changeQty(\${c.id}, -1)">-</button>
-              <span style="font-weight:700; min-width:20px; text-align:center;">\${c.count}</span>
+              <span style="font-weight:700; min-width:44px; text-align:center;">\${c.weightKg} кг</span>
               <button style="background:#1e293b; color:#fff; border:none; width:26px; height:26px; border-radius:4px; cursor:pointer;" onclick="changeQty(\${c.id}, 1)">+</button>
             </div>
           </div>
         \`).join('');
       }
-      const total = cart.reduce((s, c) => s + c.count, 0);
-      document.getElementById('cartTotal').textContent = total + ' ед.';
+      const total = cart.reduce((s, c) => s + c.weightKg, 0);
+      document.getElementById('cartTotal').textContent = total + ' кг';
       modal.style.display = 'flex';
     }
 
     function changeQty(id, delta) {
       const item = cart.find(c => c.id === id);
       if (!item) return;
-      item.count += delta;
-      if (item.count <= 0) {
+      item.weightKg += delta;
+      if (item.weightKg <= 0) {
         cart = cart.filter(c => c.id !== id);
       }
       updateCartBadge();
