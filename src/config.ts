@@ -12,6 +12,9 @@ export interface AppConfig {
   editorToken: string;
   viewerToken: string;
   corsAllowedOrigin: string;
+  telegramBotToken: string;
+  telegramChatId: string;
+  telegramNotifyHour: number;
 }
 
 export function loadConfig(): AppConfig {
@@ -25,7 +28,10 @@ export function loadConfig(): AppConfig {
     adminToken: process.env.ADMIN_TOKEN || 'token-admin-secret-777',
     editorToken: process.env.EDITOR_TOKEN || 'token-editor-secret-555',
     viewerToken: process.env.VIEWER_TOKEN || 'token-viewer-secret-111',
-    corsAllowedOrigin: process.env.CORS_ALLOWED_ORIGIN || '*'
+    corsAllowedOrigin: process.env.CORS_ALLOWED_ORIGIN || '*',
+    telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || '',
+    telegramChatId: process.env.TELEGRAM_CHAT_ID || '',
+    telegramNotifyHour: parseInt(process.env.TELEGRAM_NOTIFY_HOUR || '6', 10)
   };
 }
 

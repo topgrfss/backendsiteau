@@ -703,6 +703,7 @@ export function renderDashboardHtml(config: AppConfig): string {
           <div class="chip" data-filter="fresh" onclick="setFilter('fresh', this)">🟢 Свежие</div>
           <div class="chip" data-filter="warning" onclick="setFilter('warning', this)">🟡 Истекают</div>
           <div class="chip" data-filter="expired" onclick="setFilter('expired', this)">🔴 Просрочено</div>
+          <button type="button" class="chip" style="color:var(--accent); border-color:var(--accent); background:#0c1524;" onclick="triggerTelegramTest()" title="Проверить бота и отправить отчет в Telegram">✈️ Бот Telegram</button>
         </div>
       </div>
 
@@ -1813,6 +1814,31 @@ export function renderDashboardHtml(config: AppConfig): string {
         }
         showToast('Партия #' + id + ' удалена');
         loadItems();
+      } catch (err) {
+        showToast('Ошибка сети: ' + err.message, true);
+      }
+    }
+
+    async function triggerTelegramTest() {
+      if (!currentToken) {
+        showToast('Требуется авторизация', true);
+        return;
+      }
+      showToast('Отправка проверки в Telegram...');
+      try {
+        const res = await fetch('/api/telegram/test', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + currentToken
+          }
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast('✅ ' + data.message);
+        } else {
+          showToast('❌ ' + (data.message || data.error || 'Ошибка отправки'), true);
+        }
       } catch (err) {
         showToast('Ошибка сети: ' + err.message, true);
       }

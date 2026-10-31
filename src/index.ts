@@ -8,6 +8,7 @@ import { requireRole } from './middleware/auth.js';
 import { Item, CatalogItem } from './models.js';
 import { renderShowcaseHtml } from './views/showcase.js';
 import { renderDashboardHtml } from './views/dashboard.js';
+import { initTelegramScheduler, checkAndSendExpiringNotification } from './telegram.js';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -380,8 +381,20 @@ app.get('/xmlrpc.php', trollBotHandler);
 app.get('/.env', trollBotHandler);
 app.get('/.git/config', trollBotHandler);
 
+// POST /api/telegram/test - ручная отправка проверки в Telegram (Editor / Admin)
+app.post('/api/telegram/test', requireRole('editor'), async (_req: Request, res: Response) => {
+  try {
+    const result = await checkAndSendExpiringNotification(true);
+    res.status(result.success ? 200 : 400).json(result);
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message || 'Внутренняя ошибка' });
+  }
+});
+
 // Запуск сервера на 0.0.0.0:3000
 const PORT = config.port;
 app.listen(PORT, '0.0.0.0', () => {
   console.info(`=== СЕРВЕР С РОЛЯМИ запущен === Port: ${PORT}, Version: ${config.version}`);
+  // Инициализация ежедневных Telegram-уведомлений в 06:00
+  initTelegramScheduler();
 });

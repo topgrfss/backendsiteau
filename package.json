@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "npx --yes tsx watch src/index.ts",
+    "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "start": "npx --yes tsx src/index.ts"
+    "start": "node dist/index.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
