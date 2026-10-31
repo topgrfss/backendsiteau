@@ -15,6 +15,7 @@ export interface AppConfig {
   telegramBotToken: string;
   telegramChatId: string;
   telegramNotifyHour: number;
+  telegramProxyUrl: string;
 }
 
 export function loadConfig(): AppConfig {
@@ -31,7 +32,8 @@ export function loadConfig(): AppConfig {
     corsAllowedOrigin: process.env.CORS_ALLOWED_ORIGIN || '*',
     telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || '',
     telegramChatId: process.env.TELEGRAM_CHAT_ID || '',
-    telegramNotifyHour: parseInt(process.env.TELEGRAM_NOTIFY_HOUR || '6', 10)
+    telegramNotifyHour: parseInt(process.env.TELEGRAM_NOTIFY_HOUR || '6', 10),
+    telegramProxyUrl: process.env.TELEGRAM_PROXY_URL !== undefined ? process.env.TELEGRAM_PROXY_URL : 'http://127.0.0.1:8080'
   };
 }
 

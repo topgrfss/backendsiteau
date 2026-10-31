@@ -1,3 +1,4 @@
+import { ProxyAgent, fetch as undiciFetch } from 'undici';
 import { config } from './config.js';
 import { storage } from './storage.js';
 
@@ -18,6 +19,7 @@ function getDaysLeft(endIso: string): number {
 
 /**
  * Отправка сообщения в Telegram через Bot API
+ * Использует ProxyAgent (undici) если задан прокси (по умолчанию http://127.0.0.1:8080)
  */
 export async function sendTelegramMessage(htmlText: string): Promise<{ success: boolean; error?: string }> {
   const token = config.telegramBotToken?.trim();
@@ -30,10 +32,22 @@ export async function sendTelegramMessage(htmlText: string): Promise<{ success: 
     };
   }
 
+  const proxyUrl = config.telegramProxyUrl?.trim();
+  let dispatcher: ProxyAgent | undefined = undefined;
+
+  if (proxyUrl && proxyUrl !== 'none' && proxyUrl !== 'direct') {
+    try {
+      dispatcher = new ProxyAgent(proxyUrl);
+    } catch (err: any) {
+      console.warn(`[Telegram] Ошибка настройки прокси ${proxyUrl}:`, err);
+    }
+  }
+
   try {
     const url = `https://api.telegram.org/bot${token}/sendMessage`;
-    const res = await fetch(url, {
+    const res = await undiciFetch(url, {
       method: 'POST',
+      dispatcher, // Прокси применяется изолированно только к Telegram
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         chat_id: chatId,
@@ -53,9 +67,16 @@ export async function sendTelegramMessage(htmlText: string): Promise<{ success: 
 
     return { success: true };
   } catch (err: any) {
+    const errMsg = err?.message || String(err);
+    if (errMsg.includes('ECONNREFUSED') && proxyUrl) {
+      return {
+        success: false,
+        error: `Не удалось соединиться с прокси ${proxyUrl}. Убедитесь, что прокси запущен.`
+      };
+    }
     return {
       success: false,
-      error: err.message || 'Ошибка сети при обращении к Telegram API'
+      error: errMsg || 'Ошибка сети при обращении к Telegram API'
     };
   }
 }
