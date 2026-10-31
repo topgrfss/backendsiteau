@@ -508,8 +508,8 @@ export function renderDashboardHtml(config: AppConfig): string {
     </a>
     <div class="header-actions">
       <a href="/showcase" class="btn-header">🌟 Витрина</a>
-      <span id="roleBadge" class="role-badge role-editor">Editor</span>
-      <button class="btn-action" style="padding:4px 8px;" onclick="showAuthModal(true)">🔑 Вход</button>
+      <span id="roleBadge" class="role-badge" style="display: none;"></span>
+      <button id="authBtn" class="btn-action" style="padding:5px 10px;" onclick="showAuthModal(true)">🔑 Войти</button>
     </div>
   </header>
 
@@ -681,24 +681,24 @@ export function renderDashboardHtml(config: AppConfig): string {
     <div class="auth-card">
       <div style="text-align:center; margin-bottom:18px;">
         <div style="font-size:36px; margin-bottom:6px;">🔒</div>
-        <h2 style="color:#fff; font-size:1.25rem;">Вход на склад Siteau</h2>
+        <h2 style="color:#fff; font-size:1.25rem;">Вход в панель склада</h2>
         <p style="color:var(--text-muted); font-size:0.82rem; margin-top:4px;">
-          Доступ разрешен для ролей Viewer, Editor и Admin
+          Введите пароль сотрудника для доступа к управлению складом
         </p>
       </div>
 
       <form onsubmit="handleLoginSubmit(event)">
         <div class="form-group">
           <label class="form-label">Пароль доступа</label>
-          <input type="password" id="authPassword" class="form-control" placeholder="view / jisoo / emmamyers" required autofocus />
-          <div class="form-hint" style="margin-top:6px;">
-            <code>view</code> (Viewer), <code>jisoo</code> (Editor), <code>emmamyers</code> (Admin)
-          </div>
+          <input type="password" id="authPassword" class="form-control" placeholder="Введите пароль..." required autofocus autocomplete="current-password" />
         </div>
         <button type="submit" class="btn-primary" style="margin-top:14px;">
-          Войти на склад
+          Войти
         </button>
       </form>
+      <div style="text-align:center; margin-top:14px;">
+        <a href="/showcase" style="color:var(--text-muted); font-size:0.82rem; text-decoration:none;">← Перейти на витрину продукции</a>
+      </div>
     </div>
   </div>
 
@@ -794,14 +794,8 @@ export function renderDashboardHtml(config: AppConfig): string {
   <div id="toast" class="toast"></div>
 
   <script>
-    const TOKENS = {
-      admin: "${config.adminToken}",
-      editor: "${config.editorToken}",
-      viewer: "${config.viewerToken}"
-    };
-
-    let currentRole = localStorage.getItem('siteau_role') || 'editor';
-    let currentToken = localStorage.getItem('siteau_token') || TOKENS[currentRole];
+    let currentRole = localStorage.getItem('siteau_role') || '';
+    let currentToken = localStorage.getItem('siteau_token') || '';
     let allItems = [];
     let currentFilter = 'all';
     let catalogList = [];
@@ -815,8 +809,9 @@ export function renderDashboardHtml(config: AppConfig): string {
     }
 
     function checkAuth() {
-      if (!currentToken) {
+      if (!currentToken || !currentRole) {
         showAuthModal(true);
+        updateRoleBadge();
         return false;
       }
       updateRoleBadge();
@@ -824,13 +819,22 @@ export function renderDashboardHtml(config: AppConfig): string {
     }
 
     function showAuthModal(show) {
-      document.getElementById('authGate').style.display = show ? 'flex' : 'none';
-      if (show) document.getElementById('authPassword').focus();
+      const gate = document.getElementById('authGate');
+      gate.style.display = show ? 'flex' : 'none';
+      if (show) {
+        setTimeout(() => {
+          const passEl = document.getElementById('authPassword');
+          if (passEl) passEl.focus();
+        }, 50);
+      }
     }
 
     async function handleLoginSubmit(e) {
       e.preventDefault();
-      const pass = document.getElementById('authPassword').value.trim();
+      const passEl = document.getElementById('authPassword');
+      const pass = passEl.value.trim();
+      if (!pass) return;
+
       try {
         const res = await fetch('/login', {
           method: 'POST',
@@ -840,6 +844,8 @@ export function renderDashboardHtml(config: AppConfig): string {
         const data = await res.json();
         if (!res.ok) {
           showToast(data.error || 'Неверный пароль', true);
+          passEl.value = '';
+          passEl.focus();
           return;
         }
 
@@ -847,6 +853,7 @@ export function renderDashboardHtml(config: AppConfig): string {
         currentToken = data.token;
         localStorage.setItem('siteau_role', currentRole);
         localStorage.setItem('siteau_token', currentToken);
+        passEl.value = '';
 
         updateRoleBadge();
         showAuthModal(false);
@@ -858,10 +865,49 @@ export function renderDashboardHtml(config: AppConfig): string {
       }
     }
 
+    function logout() {
+      localStorage.removeItem('siteau_role');
+      localStorage.removeItem('siteau_token');
+      sessionStorage.removeItem('siteau_role');
+      sessionStorage.removeItem('siteau_token');
+      currentRole = '';
+      currentToken = '';
+      allItems = [];
+      updateRoleBadge();
+      const itemsContainer = document.getElementById('itemsContainer');
+      if (itemsContainer) itemsContainer.innerHTML = '';
+      const catContainer = document.getElementById('catalogCardsContainer');
+      if (catContainer) catContainer.innerHTML = '';
+      document.getElementById('tabCount').textContent = '0';
+      document.getElementById('catCount').textContent = '0';
+      document.getElementById('statTotalItems').textContent = '0';
+      document.getElementById('statTotalQty').textContent = '0 кг';
+      document.getElementById('statFreshItems').textContent = '0';
+      document.getElementById('statWarningItems').textContent = '0';
+      showToast('Вы вышли из системы');
+      showAuthModal(true);
+    }
+
     function updateRoleBadge() {
       const badge = document.getElementById('roleBadge');
-      badge.textContent = currentRole.toUpperCase();
-      badge.className = 'role-badge role-' + currentRole;
+      const authBtn = document.getElementById('authBtn');
+      if (!currentToken || !currentRole) {
+        badge.style.display = 'none';
+        badge.textContent = '';
+        badge.className = 'role-badge';
+        if (authBtn) {
+          authBtn.innerHTML = '🔑 Войти';
+          authBtn.onclick = () => showAuthModal(true);
+        }
+      } else {
+        badge.style.display = 'inline-block';
+        badge.textContent = currentRole.toUpperCase();
+        badge.className = 'role-badge role-' + currentRole;
+        if (authBtn) {
+          authBtn.innerHTML = '🚪 Выход';
+          authBtn.onclick = () => logout();
+        }
+      }
     }
 
     function switchTab(tabId) {
@@ -1126,7 +1172,7 @@ export function renderDashboardHtml(config: AppConfig): string {
         });
         if (!res.ok) {
           if (res.status === 401 || res.status === 403) {
-            showAuthModal(true);
+            logout();
             return;
           }
           const err = await res.json();
@@ -1420,10 +1466,14 @@ export function renderDashboardHtml(config: AppConfig): string {
     }
 
     // Инициализация при загрузке
-    checkAuth();
-    loadItems();
-    loadCatalogData();
     initAddForm();
+    if (checkAuth()) {
+      loadItems();
+      loadCatalogData();
+    } else {
+      updateRoleBadge();
+      showAuthModal(true);
+    }
   </script>
 </body>
 </html>`;
