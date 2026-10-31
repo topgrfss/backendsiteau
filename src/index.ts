@@ -9,7 +9,18 @@ import { Item, CatalogItem } from './models.js';
 import { renderShowcaseHtml } from './views/showcase.js';
 import { renderDashboardHtml } from './views/dashboard.js';
 
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
+
+// Раздача клиентской библиотеки сканера штрихкодов
+app.use('/vendor/html5-qrcode.min.js', (_req: Request, res: Response) => {
+  res.sendFile(path.resolve(__dirname, '../node_modules/html5-qrcode/html5-qrcode.min.js'));
+});
 
 // Инициализация каталога из catalog.json
 catalogService.load('catalog.json');

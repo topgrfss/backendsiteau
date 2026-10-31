@@ -7,6 +7,7 @@ export function renderDashboardHtml(config: AppConfig): string {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Управление складом — Siteau</title>
+  <script src="/vendor/html5-qrcode.min.js"></script>
   <style>
     :root {
       --bg: #090d16;
@@ -353,6 +354,139 @@ export function renderDashboardHtml(config: AppConfig): string {
       margin-bottom: 16px;
       text-align: center;
     }
+    .btn-camera {
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      color: #090d16;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      width: 100%;
+      min-height: 48px;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+      transition: all 0.2s;
+    }
+    .btn-camera:hover {
+      background: linear-gradient(135deg, #0369a1, #0284c7);
+      color: #fff;
+    }
+    .btn-camera.camera-active {
+      background: #ef4444;
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+    }
+    .camera-viewport-wrap {
+      position: relative;
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 14px;
+      border: 2px solid var(--accent);
+      min-height: 250px;
+      display: none;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+    }
+    #cameraReader {
+      width: 100% !important;
+      border: none !important;
+    }
+    #cameraReader video {
+      width: 100% !important;
+      height: auto !important;
+      max-height: 360px !important;
+      object-fit: cover !important;
+      border-radius: 10px;
+      display: block;
+    }
+    .camera-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      z-index: 10;
+    }
+    .scan-instruction {
+      font-size: 0.78rem;
+      color: #38bdf8;
+      background: rgba(9, 13, 22, 0.85);
+      backdrop-filter: blur(4px);
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .scan-target-box {
+      width: 80%;
+      height: 160px;
+      position: relative;
+      border-radius: 12px;
+      margin: auto 0;
+      box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+    }
+    .scan-laser-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #38bdf8;
+      box-shadow: 0 0 8px #38bdf8, 0 0 18px #0284c7;
+      animation: scanLaser 2s ease-in-out infinite alternate;
+    }
+    @keyframes scanLaser {
+      0% { top: 5%; }
+      100% { top: 95%; }
+    }
+    .scan-corner {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-color: #38bdf8;
+      border-style: solid;
+      pointer-events: none;
+    }
+    .corner-tl { top: 0; left: 0; border-width: 3px 0 0 3px; border-top-left-radius: 6px; }
+    .corner-tr { top: 0; right: 0; border-width: 3px 3px 0 0; border-top-right-radius: 6px; }
+    .corner-bl { bottom: 0; left: 0; border-width: 0 0 3px 3px; border-bottom-left-radius: 6px; }
+    .corner-br { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-bottom-right-radius: 6px; }
+    .camera-controls-bar {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      pointer-events: auto;
+    }
+    .btn-cam-ctrl {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(4px);
+      border: 1px solid var(--card-border);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-cam-ctrl:hover { background: #1e293b; color: var(--accent); }
+    .btn-cam-close { color: #f87171; border-color: rgba(239, 68, 68, 0.4); }
+    .btn-cam-close:hover { background: rgba(239, 68, 68, 0.2); color: #fff; }
     .scanner-input-wrap {
       position: relative;
       display: flex;
@@ -580,9 +714,38 @@ export function renderDashboardHtml(config: AppConfig): string {
     <section id="tab-scan-add" style="display: none;">
       <div class="form-card">
         <div class="scanner-box">
-          <div style="font-weight:700; font-size:0.95rem; color:#fff; margin-bottom:8px;">
-            📟 Сканирование штрихкода / PLU
+          <div style="font-weight:700; font-size:0.95rem; color:#fff; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+            <span>📟 Сканирование штрихкода / PLU</span>
+            <span style="font-size:0.75rem; color:var(--accent); font-weight:600;">EAN-13, QR, Code-128</span>
           </div>
+
+          <!-- Кнопка вызова камеры -->
+          <button type="button" id="btnToggleCamera" class="btn-camera" onclick="toggleCameraScanner()">
+            <span>📷</span> Включить камеру для сканирования
+          </button>
+
+          <!-- Окно живой камеры со сканером -->
+          <div id="cameraScannerContainer" class="camera-viewport-wrap">
+            <div id="cameraReader"></div>
+            <div class="camera-overlay">
+              <div class="scan-instruction">
+                <span>🎯</span> Наведите штрихкод или QR в рамку
+              </div>
+              <div class="scan-target-box">
+                <div class="scan-corner corner-tl"></div>
+                <div class="scan-corner corner-tr"></div>
+                <div class="scan-corner corner-bl"></div>
+                <div class="scan-corner corner-br"></div>
+                <div class="scan-laser-line"></div>
+              </div>
+              <div class="camera-controls-bar">
+                <button type="button" class="btn-cam-ctrl" onclick="switchCamera()">🔄 Сменить камеру</button>
+                <button type="button" id="btnTorch" class="btn-cam-ctrl" style="display:none;" onclick="toggleTorch()">💡 Вспышка</button>
+                <button type="button" class="btn-cam-ctrl btn-cam-close" onclick="stopCameraScanner()">✕ Закрыть</button>
+              </div>
+            </div>
+          </div>
+
           <div class="scanner-input-wrap">
             <span class="scanner-icon">🔍</span>
             <input type="text" id="addPlu" inputmode="numeric" class="scanner-big-input" placeholder="Введите или отсканируйте PLU..." oninput="onPluInput(this.value)" autofocus />
@@ -866,6 +1029,7 @@ export function renderDashboardHtml(config: AppConfig): string {
     }
 
     function logout() {
+      stopCameraScanner();
       localStorage.removeItem('siteau_role');
       localStorage.removeItem('siteau_token');
       sessionStorage.removeItem('siteau_role');
@@ -911,6 +1075,9 @@ export function renderDashboardHtml(config: AppConfig): string {
     }
 
     function switchTab(tabId) {
+      if (tabId !== 'scan-add') {
+        stopCameraScanner();
+      }
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
       });
@@ -922,6 +1089,181 @@ export function renderDashboardHtml(config: AppConfig): string {
       if (tabId === 'items') loadItems();
       if (tabId === 'catalog') loadCatalogData();
       if (tabId === 'scan-add') initAddForm();
+    }
+
+    // ==================== СКАНЕР КАМЕРЫ (HTML5-QRCODE) ====================
+    let html5QrCode = null;
+    let isCameraRunning = false;
+    let currentCameraId = null;
+    let availableCameras = [];
+    let isTorchOn = false;
+
+    async function toggleCameraScanner() {
+      if (isCameraRunning) {
+        stopCameraScanner();
+      } else {
+        startCameraScanner();
+      }
+    }
+
+    async function startCameraScanner() {
+      const container = document.getElementById('cameraScannerContainer');
+      const btn = document.getElementById('btnToggleCamera');
+
+      if (typeof Html5Qrcode === 'undefined') {
+        showToast('Загрузка модуля камеры...', true);
+        return;
+      }
+
+      try {
+        container.style.display = 'block';
+        btn.innerHTML = '<span>⏹️</span> Выключить камеру';
+        btn.classList.add('camera-active');
+
+        if (!html5QrCode) {
+          html5QrCode = new Html5Qrcode('cameraReader', {
+            verbose: false,
+            experimentalFeatures: {
+              useBarCodeDetectorIfSupported: true
+            }
+          });
+        }
+
+        try {
+          availableCameras = await Html5Qrcode.getCameras();
+        } catch (e) {
+          console.warn('getCameras:', e);
+        }
+
+        const scanConfig = {
+          fps: 15,
+          qrbox: (viewfinderWidth, viewfinderHeight) => {
+            const edge = Math.min(viewfinderWidth, viewfinderHeight) * 0.85;
+            return { width: Math.floor(edge), height: Math.floor(edge * 0.6) };
+          },
+          aspectRatio: 1.333334
+        };
+
+        const cameraConfig = currentCameraId ? { deviceId: { exact: currentCameraId } } : { facingMode: 'environment' };
+
+        await html5QrCode.start(
+          cameraConfig,
+          scanConfig,
+          onBarcodeDetected,
+          onScanError
+        );
+
+        isCameraRunning = true;
+        showToast('Камера включена — наведите на штрихкод');
+
+        try {
+          const track = html5QrCode.getRunningTrackCameraCapabilities();
+          if (track && track.torchFeature().isSupported()) {
+            document.getElementById('btnTorch').style.display = 'inline-flex';
+          }
+        } catch {}
+
+      } catch (err) {
+        console.error('Camera error:', err);
+        stopCameraScanner();
+        const errStr = String(err);
+        let msg = 'Не удалось запустить камеру';
+        if (err.name === 'NotAllowedError' || errStr.includes('Permission')) {
+          msg = 'Доступ к камере отклонен. Разрешите камеру в настройках браузера.';
+        } else if (err.name === 'NotFoundError') {
+          msg = 'Камера на этом устройстве не найдена.';
+        }
+        showToast(msg, true);
+      }
+    }
+
+    async function stopCameraScanner() {
+      const container = document.getElementById('cameraScannerContainer');
+      const btn = document.getElementById('btnToggleCamera');
+
+      if (html5QrCode && isCameraRunning) {
+        try {
+          await html5QrCode.stop();
+        } catch (e) {
+          console.warn('Error stopping scanner:', e);
+        }
+      }
+      isCameraRunning = false;
+      if (container) container.style.display = 'none';
+      if (btn) {
+        btn.innerHTML = '<span>📷</span> Включить камеру для сканирования';
+        btn.classList.remove('camera-active');
+      }
+      const torchBtn = document.getElementById('btnTorch');
+      if (torchBtn) torchBtn.style.display = 'none';
+    }
+
+    async function switchCamera() {
+      if (!availableCameras || availableCameras.length < 2) {
+        showToast('Вторая камера не обнаружена');
+        return;
+      }
+      const idx = availableCameras.findIndex(c => c.id === currentCameraId);
+      const next = availableCameras[(idx + 1) % availableCameras.length];
+      currentCameraId = next.id;
+      await stopCameraScanner();
+      await startCameraScanner();
+    }
+
+    async function toggleTorch() {
+      if (!html5QrCode || !isCameraRunning) return;
+      try {
+        const track = html5QrCode.getRunningTrackCameraCapabilities();
+        const torch = track.torchFeature();
+        if (torch.isSupported()) {
+          isTorchOn = !isTorchOn;
+          await torch.apply(isTorchOn);
+          document.getElementById('btnTorch').style.background = isTorchOn ? 'var(--accent)' : 'rgba(15, 23, 42, 0.85)';
+          document.getElementById('btnTorch').style.color = isTorchOn ? '#090d16' : '#fff';
+        }
+      } catch (err) {
+        console.warn('Torch error:', err);
+      }
+    }
+
+    function onBarcodeDetected(decodedText) {
+      if (!decodedText) return;
+      if (navigator.vibrate) navigator.vibrate(120);
+
+      let scanned = decodedText.trim();
+      let weightFromBarcode = null;
+
+      // Распознавание весовых штрихкодов торговых весов (EAN-13, начинающихся с 20-29)
+      // Формат: 2 + 5 цифр PLU + 5 цифр вес в граммах + контрольная цифра
+      if (/^2[0-9]{12}$/.test(scanned)) {
+        const pluPart = scanned.substring(2, 7);
+        const weightGrams = parseInt(scanned.substring(7, 12), 10);
+        if (!isNaN(weightGrams) && weightGrams > 0) {
+          weightFromBarcode = (weightGrams / 1000).toFixed(2);
+          scanned = pluPart;
+        }
+      }
+
+      showToast('✅ Считан код: ' + scanned);
+      document.getElementById('addPlu').value = scanned;
+      onPluInput(scanned);
+
+      if (weightFromBarcode) {
+        document.getElementById('addQuantity').value = weightFromBarcode;
+        showToast('✅ PLU: ' + scanned + ' (вес: ' + weightFromBarcode + ' кг)');
+      }
+
+      stopCameraScanner();
+
+      setTimeout(() => {
+        const qty = document.getElementById('addQuantity');
+        if (!qty.value) qty.focus();
+        else qty.select();
+      }, 300);
+    }
+
+    function onScanError() {
+      // Игнорируем промежуточные кадры без штрихкода
     }
 
     function initAddForm() {
@@ -955,11 +1297,22 @@ export function renderDashboardHtml(config: AppConfig): string {
     }
 
     async function onPluInput(plu) {
-      const trimmed = plu.trim();
+      let trimmed = plu.trim();
       const alertBox = document.getElementById('catalogMatchAlert');
       if (!trimmed) {
         alertBox.style.display = 'none';
         return;
+      }
+
+      // Поддержка весовых кодов (начинаются с 2, 13 цифр)
+      if (/^2[0-9]{12}$/.test(trimmed)) {
+        const rawPlu = trimmed.substring(2, 7);
+        const weightGrams = parseInt(trimmed.substring(7, 12), 10);
+        if (!isNaN(weightGrams) && weightGrams > 0) {
+          document.getElementById('addQuantity').value = (weightGrams / 1000).toFixed(2);
+        }
+        trimmed = rawPlu;
+        document.getElementById('addPlu').value = rawPlu;
       }
 
       try {
