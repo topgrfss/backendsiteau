@@ -1,0 +1,164 @@
+[
+    {
+        "plu": "49393",
+        "articul": null,
+        "name": "форель карелия 2+",
+        "shelf_life": 14
+    },
+    {
+        "plu": "13862",
+        "articul": null,
+        "name": "треска филе",
+        "shelf_life": 9
+    },
+    {
+        "plu": "13869",
+        "articul": null,
+        "name": "щука филе",
+        "shelf_life": 9
+    },
+    {
+        "plu": "50890",
+        "articul": null,
+        "name": "пикша",
+        "shelf_life": 9
+    },
+    {
+        "plu": "41645",
+        "articul": "487381",
+        "name": "камбала",
+        "shelf_life": 9
+    },
+    {
+        "plu": "13868",
+        "articul": null,
+        "name": "судак филе",
+        "shelf_life": 9
+    },
+    {
+        "plu": "57441",
+        "articul": null,
+        "name": "минтай филе",
+        "shelf_life": 9
+    },
+    {
+        "plu": "23750",
+        "articul": null,
+        "name": "судак",
+        "shelf_life": 9
+    },
+    {
+        "plu": "23754",
+        "articul": null,
+        "name": "щука",
+        "shelf_life": 9
+    },
+    {
+        "plu": "23764",
+        "articul": null,
+        "name": "лещ",
+        "shelf_life": 9
+    },
+    {
+        "plu": "19945",
+        "articul": "539977",
+        "name": "окунь",
+        "shelf_life": 9
+    },
+    {
+        "plu": "91502",
+        "articul": null,
+        "name": "карась",
+        "shelf_life": 9
+    },
+    {
+        "plu": "59763",
+        "articul": "289649",
+        "name": "форель стейки кп",
+        "shelf_life": 14
+    },
+    {
+        "plu": "59419",
+        "articul": "240596",
+        "name": "форель филе кп",
+        "shelf_life": 14
+    },
+    {
+        "plu": "13804",
+        "articul": "613512",
+        "name": "минтай",
+        "shelf_life": 9
+    },
+    {
+        "plu": "41637",
+        "articul": "158412",
+        "name": "зубатка пестрая",
+        "shelf_life": 9
+    },
+    {
+        "plu": "60368",
+        "articul": "000",
+        "name": "лосось стейк орд",
+        "shelf_life": 1
+    },
+    {
+        "plu": "41571",
+        "articul": null,
+        "name": "треска",
+        "shelf_life": 9
+    },
+    {
+        "plu": "20404",
+        "articul": null,
+        "name": "пангасиус",
+        "shelf_life": 12
+    },
+    {
+        "plu": "59520",
+        "articul": null,
+        "name": "форель турция 800+",
+        "shelf_life": 14
+    },
+    {
+        "plu": "55507",
+        "articul": null,
+        "name": "форель мурманская",
+        "shelf_life": 14
+    },
+    {
+        "plu": "23792",
+        "articul": null,
+        "name": "сазан потр",
+        "shelf_life": 9
+    },
+    {
+        "plu": "23767",
+        "articul": null,
+        "name": "карп псг",
+        "shelf_life": 9
+    },
+    {
+        "plu": "60362",
+        "articul": null,
+        "name": "лосось орд",
+        "shelf_life": 15
+    },
+    {
+        "plu": "368",
+        "articul": null,
+        "name": "форель кп 800+",
+        "shelf_life": 16
+    },
+    {
+        "plu": "59418",
+        "articul": null,
+        "name": "форель кп 2+",
+        "shelf_life": 16
+    },
+    {
+        "plu": "49392",
+        "articul": null,
+        "name": "форель карелия 800+",
+        "shelf_life": 14
+    }
+]
