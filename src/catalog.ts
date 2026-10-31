@@ -151,6 +151,32 @@ export class CatalogService {
     return false;
   }
 
+  updateCatalogItem(pluOrArticul: string, updates: Partial<CatalogItem>): CatalogItem | null {
+    const target = pluOrArticul.trim();
+    const index = this.items.findIndex(item => {
+      const iPlu = (item.plu || '').toString().trim();
+      const iArt = (item.articul || '').toString().trim();
+      return iPlu === target || iArt === target;
+    });
+
+    if (index === -1) return null;
+
+    const existing = this.items[index];
+    const updated: CatalogItem = {
+      ...existing,
+      name: updates.name !== undefined ? updates.name.trim() : existing.name,
+      description: updates.description !== undefined ? updates.description.trim() : (existing.description || ''),
+      category: updates.category !== undefined ? updates.category.trim() : (existing.category || 'Рыба и морепродукты'),
+      shelf_life: typeof updates.shelf_life === 'number' ? updates.shelf_life : existing.shelf_life,
+      weight: typeof updates.weight === 'number' ? updates.weight : existing.weight
+    };
+
+    this.items[index] = updated;
+    this.rebuildScanCatalog();
+    this.saveToFile();
+    return updated;
+  }
+
   autoFill(item: Item): void {
     item.plu = item.plu ? String(item.plu).trim() : '';
     item.articul = item.articul ? String(item.articul).trim() : '';

@@ -5,7 +5,7 @@ export function renderShowcaseHtml(config: AppConfig): string {
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Витрина продукции — Siteau Seafood</title>
   <style>
     :root {
@@ -21,7 +21,7 @@ export function renderShowcaseHtml(config: AppConfig): string {
       --warning: #f59e0b;
       --danger: #ef4444;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body {
       background: var(--bg);
       color: var(--text-main);
@@ -30,16 +30,15 @@ export function renderShowcaseHtml(config: AppConfig): string {
       display: flex;
       flex-direction: column;
     }
-    /* Чисто клиентская шапка: никаких ссылок на админку и склад */
+    /* Клиентская шапка: без PLU и без ссылок на склад */
     header {
       background: #0d1322;
       border-bottom: 1px solid var(--card-border);
-      padding: 16px 32px;
+      padding: 12px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
+      gap: 12px;
       position: sticky;
       top: 0;
       z-index: 50;
@@ -47,29 +46,30 @@ export function renderShowcaseHtml(config: AppConfig): string {
     .brand {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       text-decoration: none;
       color: inherit;
     }
     .brand-icon {
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
       background: linear-gradient(135deg, #0284c7, #38bdf8);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
+      font-size: 20px;
       box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+      flex-shrink: 0;
     }
     .brand-title {
-      font-size: 1.25rem;
+      font-size: 1.15rem;
       font-weight: 800;
       color: #fff;
       letter-spacing: -0.02em;
     }
     .brand-sub {
-      font-size: 0.78rem;
+      font-size: 0.72rem;
       color: var(--text-muted);
     }
     .btn-cart {
@@ -77,88 +77,92 @@ export function renderShowcaseHtml(config: AppConfig): string {
       color: #090d16 !important;
       font-weight: 700;
       border: none;
-      padding: 9px 18px;
+      padding: 8px 16px;
       border-radius: 10px;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       transition: all 0.2s;
+      min-height: 40px;
     }
-    .btn-cart:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-cart:hover { filter: brightness(1.1); }
     .cart-badge {
       background: #090d16;
       color: #fff;
-      padding: 2px 8px;
-      border-radius: 12px;
+      padding: 2px 7px;
+      border-radius: 10px;
       font-size: 0.75rem;
       font-weight: 700;
     }
     .hero-banner {
       background: radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.15) 0%, rgba(9, 13, 22, 0) 70%), #0d1322;
       border-bottom: 1px solid var(--card-border);
-      padding: 40px 24px 32px;
+      padding: 28px 18px 24px;
       text-align: center;
     }
     .hero-tag {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
       background: rgba(56, 189, 248, 0.15);
       color: var(--accent);
-      padding: 4px 12px;
+      padding: 4px 10px;
       border-radius: 20px;
-      font-size: 0.8rem;
+      font-size: 0.76rem;
       font-weight: 700;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       border: 1px solid rgba(56, 189, 248, 0.3);
     }
     .hero-h1 {
-      font-size: 2.2rem;
+      font-size: 1.8rem;
       font-weight: 800;
       color: #fff;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       letter-spacing: -0.02em;
+      line-height: 1.2;
     }
     .hero-sub {
       color: var(--text-muted);
-      font-size: 1rem;
-      max-width: 620px;
+      font-size: 0.92rem;
+      max-width: 580px;
       margin: 0 auto;
-      line-height: 1.5;
+      line-height: 1.45;
     }
     .controls-wrapper {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 24px 24px 0;
+      padding: 18px 16px 0;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
+      width: 100%;
     }
-    .search-row { display: flex; gap: 12px; flex-wrap: wrap; }
-    .search-bar { flex: 1; min-width: 280px; position: relative; }
+    .search-row { display: flex; gap: 10px; }
+    .search-bar { flex: 1; position: relative; }
     .search-input {
       width: 100%;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 10px;
-      padding: 12px 16px 12px 42px;
+      padding: 12px 16px 12px 40px;
       color: #fff;
-      font-size: 0.95rem;
+      font-size: 16px; /* Предотвращает зум на мобильных */
       outline: none;
       transition: border-color 0.2s;
     }
     .search-input:focus { border-color: var(--accent); }
     .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
-    .cat-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; }
+    .cat-chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
+    .cat-chips::-webkit-scrollbar { display: none; }
     .cat-chip {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       color: var(--text-muted);
-      padding: 8px 16px;
-      border-radius: 30px;
-      font-size: 0.86rem;
+      padding: 7px 14px;
+      border-radius: 25px;
+      font-size: 0.82rem;
       font-weight: 600;
       cursor: pointer;
       white-space: nowrap;
@@ -171,57 +175,57 @@ export function renderShowcaseHtml(config: AppConfig): string {
       max-width: 1200px;
       width: 100%;
       margin: 0 auto;
-      padding: 24px;
+      padding: 16px;
     }
     .showcase-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
     }
     .prod-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 14px;
-      padding: 22px;
+      padding: 18px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
       transition: all 0.25s;
     }
     .prod-card:hover {
-      transform: translateY(-3px);
+      transform: translateY(-2px);
       border-color: #334155;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.35);
     }
     .prod-card-top {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      gap: 12px;
+      gap: 10px;
     }
     .prod-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
       background: #172133;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 24px;
+      font-size: 22px;
       border: 1px solid var(--card-border);
       flex-shrink: 0;
     }
     .prod-title {
-      font-size: 1.2rem;
+      font-size: 1.15rem;
       font-weight: 700;
       color: #fff;
       text-transform: capitalize;
-      line-height: 1.3;
+      line-height: 1.25;
     }
     .prod-category {
       display: inline-block;
-      font-size: 0.74rem;
-      padding: 2px 8px;
+      font-size: 0.72rem;
+      padding: 2px 7px;
       border-radius: 4px;
       font-weight: 700;
       background: #0d1322;
@@ -230,30 +234,30 @@ export function renderShowcaseHtml(config: AppConfig): string {
       margin-top: 4px;
     }
     .prod-desc {
-      font-size: 0.88rem;
+      font-size: 0.86rem;
       color: #94a3b8;
-      line-height: 1.5;
+      line-height: 1.45;
       background: #090d16;
-      padding: 10px 14px;
+      padding: 10px 12px;
       border-radius: 8px;
       border-left: 3px solid var(--accent);
     }
     .prod-specs {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      gap: 8px;
       background: #0d1322;
-      padding: 10px 14px;
+      padding: 8px 12px;
       border-radius: 8px;
       border: 1px solid var(--card-border);
     }
     .spec-item { display: flex; flex-direction: column; }
-    .spec-label { color: var(--text-muted); font-size: 0.72rem; }
-    .spec-val { color: #fff; font-weight: 700; font-size: 0.95rem; }
+    .spec-label { color: var(--text-muted); font-size: 0.7rem; }
+    .spec-val { color: #fff; font-weight: 700; font-size: 0.92rem; }
     .exp-pill {
-      font-size: 0.8rem;
-      padding: 6px 12px;
-      border-radius: 8px;
+      font-size: 0.78rem;
+      padding: 6px 10px;
+      border-radius: 6px;
       font-weight: 600;
       display: flex;
       align-items: center;
@@ -266,7 +270,7 @@ export function renderShowcaseHtml(config: AppConfig): string {
       background: #172133;
       border: 1px solid var(--card-border);
       color: #fff;
-      padding: 11px 16px;
+      padding: 12px 16px;
       border-radius: 8px;
       font-weight: 700;
       font-size: 0.9rem;
@@ -275,14 +279,15 @@ export function renderShowcaseHtml(config: AppConfig): string {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 6px;
+      min-height: 44px;
       margin-top: auto;
     }
     .prod-btn:hover { background: var(--accent); color: #090d16; border-color: var(--accent); }
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.75);
+      background: rgba(0,0,0,0.8);
       backdrop-filter: blur(4px);
       display: none;
       align-items: center;
@@ -293,9 +298,9 @@ export function renderShowcaseHtml(config: AppConfig): string {
     .modal {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 16px;
-      padding: 24px;
-      max-width: 520px;
+      border-radius: 14px;
+      padding: 20px;
+      max-width: 480px;
       width: 100%;
       box-shadow: 0 20px 40px rgba(0,0,0,0.6);
     }
@@ -303,43 +308,55 @@ export function renderShowcaseHtml(config: AppConfig): string {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       border-bottom: 1px solid var(--card-border);
-      padding-bottom: 12px;
+      padding-bottom: 10px;
     }
-    .modal-title { font-size: 1.25rem; font-weight: 700; color: #fff; }
-    .modal-close { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+    .modal-title { font-size: 1.15rem; font-weight: 700; color: #fff; }
+    .modal-close { background: none; border: none; color: var(--text-muted); font-size: 1.4rem; cursor: pointer; }
     .cart-items-list {
-      max-height: 280px;
+      max-height: 260px;
       overflow-y: auto;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
     }
     .cart-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
       background: #090d16;
-      padding: 10px 14px;
+      padding: 10px 12px;
       border-radius: 8px;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
     }
     .toast {
       position: fixed;
-      bottom: 24px;
-      right: 24px;
-      padding: 12px 20px;
+      bottom: 20px;
+      right: 20px;
+      left: 20px;
+      max-width: 380px;
+      margin: 0 auto;
+      padding: 12px 18px;
       border-radius: 8px;
       background: #1e293b;
       color: #fff;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       font-weight: 600;
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
       border: 1px solid var(--card-border);
       z-index: 999;
       display: none;
+      text-align: center;
+    }
+    @media (max-width: 640px) {
+      header { padding: 10px 14px; }
+      .brand-title { font-size: 1rem; }
+      .brand-sub { display: none; }
+      .hero-banner { padding: 20px 14px 18px; }
+      .hero-h1 { font-size: 1.45rem; }
+      .showcase-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -354,7 +371,7 @@ export function renderShowcaseHtml(config: AppConfig): string {
     </a>
     <button class="btn-cart" onclick="openCart()">
       <span>🛒 Заявка</span>
-      <span id="cartCount" class="cart-badge">0</span>
+      <span id="cartCount" class="cart-badge">0 кг</span>
     </button>
   </header>
 
@@ -370,7 +387,7 @@ export function renderShowcaseHtml(config: AppConfig): string {
     <div class="search-row">
       <div class="search-bar">
         <span class="search-icon">🔍</span>
-        <input type="text" id="searchInput" class="search-input" placeholder="Поиск по названию (форель, лосось, треска) или описанию..." oninput="filterShowcase()" />
+        <input type="text" id="searchInput" class="search-input" placeholder="Поиск по названию (форель, лосось, треска)..." oninput="filterShowcase()" />
       </div>
     </div>
     <div id="categoryChips" class="cat-chips">
@@ -380,7 +397,7 @@ export function renderShowcaseHtml(config: AppConfig): string {
 
   <main>
     <div id="showcaseGrid" class="showcase-grid">
-      <div style="text-align:center; padding:60px; grid-column:1/-1; color:var(--text-muted);">Загрузка витрины...</div>
+      <div style="text-align:center; padding:48px; grid-column:1/-1; color:var(--text-muted);">Загрузка витрины...</div>
     </div>
   </main>
 
@@ -392,8 +409,8 @@ export function renderShowcaseHtml(config: AppConfig): string {
         <button class="modal-close" onclick="closeCart()">&times;</button>
       </div>
       <div id="cartList" class="cart-items-list"></div>
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-top:12px; border-top:1px solid var(--card-border); font-weight:700;">
-        <span>Итого объем:</span>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding-top:10px; border-top:1px solid var(--card-border); font-weight:700;">
+        <span>Итого вес:</span>
         <span id="cartTotal" style="color:var(--accent);">0 кг</span>
       </div>
       <button class="prod-btn" style="background:var(--accent); color:#090d16; width:100%; border:none;" onclick="submitOrder()">
@@ -477,10 +494,10 @@ export function renderShowcaseHtml(config: AppConfig): string {
 
       if (!filtered.length) {
         grid.innerHTML = \`
-          <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
-            <div style="font-size: 44px; margin-bottom: 12px;">🌊</div>
-            <p style="font-size: 1.1rem; color: #fff;">На витрине сейчас нет таких позиций</p>
-            <p style="font-size: 0.85rem; margin-top: 4px;">Попробуйте выбрать другую категорию или изменить поиск</p>
+          <div style="grid-column: 1 / -1; text-align: center; padding: 48px 16px; color: var(--text-muted);">
+            <div style="font-size: 38px; margin-bottom: 10px;">🌊</div>
+            <p style="font-size: 1.05rem; color: #fff;">Позиций не найдено</p>
+            <p style="font-size: 0.82rem; margin-top: 4px;">Попробуйте выбрать другую категорию</p>
           </div>
         \`;
         return;
@@ -492,7 +509,7 @@ export function renderShowcaseHtml(config: AppConfig): string {
         let expText = '🟢 Свежий привоз (еще ' + days + ' дн.)';
         if (days < 0) {
           expClass = 'exp-pill-expired';
-          expText = '🔴 Истёк срок годности';
+          expText = '🔴 Истёк срок';
         } else if (days <= 3) {
           expClass = 'exp-pill-warning';
           expText = '🟡 Скоро истекает (' + days + ' дн.)';
@@ -504,7 +521,7 @@ export function renderShowcaseHtml(config: AppConfig): string {
         else if (lower.includes('филе')) icon = '🧊';
         else if (lower.includes('форель') || lower.includes('лосось')) icon = '🍣';
 
-        // На витрине НЕ пишем PLU и артикул, описание пишем только если есть
+        // На витрине строго без PLU и артикула
         return \`
           <div class="prod-card">
             <div class="prod-card-top">
@@ -562,7 +579,7 @@ export function renderShowcaseHtml(config: AppConfig): string {
       const modal = document.getElementById('cartModal');
       const list = document.getElementById('cartList');
       if (!cart.length) {
-        list.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted);">Заявка пуста. Выберите позиции на витрине.</div>';
+        list.innerHTML = '<div style="text-align:center; padding:24px; color:var(--text-muted);">Заявка пуста. Выберите позиции на витрине.</div>';
       } else {
         list.innerHTML = cart.map(c => \`
           <div class="cart-row">
@@ -570,9 +587,9 @@ export function renderShowcaseHtml(config: AppConfig): string {
               <strong style="color:#fff; text-transform:capitalize;">\${c.name}</strong>
             </div>
             <div style="display:flex; align-items:center; gap:8px;">
-              <button style="background:#1e293b; color:#fff; border:none; width:26px; height:26px; border-radius:4px; cursor:pointer;" onclick="changeQty(\${c.id}, -1)">-</button>
+              <button style="background:#1e293b; color:#fff; border:none; width:30px; height:30px; border-radius:4px; font-weight:700; cursor:pointer;" onclick="changeQty(\${c.id}, -1)">-</button>
               <span style="font-weight:700; min-width:44px; text-align:center;">\${c.weightKg} кг</span>
-              <button style="background:#1e293b; color:#fff; border:none; width:26px; height:26px; border-radius:4px; cursor:pointer;" onclick="changeQty(\${c.id}, 1)">+</button>
+              <button style="background:#1e293b; color:#fff; border:none; width:30px; height:30px; border-radius:4px; font-weight:700; cursor:pointer;" onclick="changeQty(\${c.id}, 1)">+</button>
             </div>
           </div>
         \`).join('');

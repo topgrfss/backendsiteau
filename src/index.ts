@@ -130,6 +130,32 @@ app.delete('/catalog/:plu', requireRole('admin'), (req: Request, res: Response) 
   res.status(200).json({ message: 'Позиция успешно удалена из каталога' });
 });
 
+// PUT /catalog/:plu - обновление описания, категории и данных позиции в каталоге (Editor+)
+app.put('/catalog/:plu', requireRole('editor'), (req: Request, res: Response) => {
+  const plu = String(req.params.plu);
+  const updates = req.body as Partial<CatalogItem>;
+  const updated = catalogService.updateCatalogItem(plu, updates);
+  if (!updated) {
+    res.status(404).json({ error: 'Позиция не найдена в каталоге' });
+    return;
+  }
+
+  // Обновляем описание и категорию у существующих партий на складе с этим PLU
+  const items = storage.getAllItems();
+  for (const it of items) {
+    if (it.id && it.plu === plu) {
+      storage.updateItem(it.id, {
+        ...it,
+        name: updated.name || it.name,
+        category: updated.category || it.category,
+        description: updated.description !== undefined ? updated.description : it.description
+      });
+    }
+  }
+
+  res.status(200).json(updated);
+});
+
 // GET /items/scan - поиск товара в каталоге по PLU
 const scanHandler = (req: Request, res: Response): void => {
   const code = req.query.code;
