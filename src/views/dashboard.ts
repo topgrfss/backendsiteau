@@ -729,10 +729,39 @@ export function renderDashboardHtml(config: AppConfig): string {
     <!-- Вкладка 2: Приемка через сканер / по PLU -->
     <section id="tab-scan-add" style="display: none;">
       <div class="form-card">
+        <!-- Блок сессии непрерывной приемки партий -->
+        <div id="scanSessionBar" style="display:none; background:#0c192c; border:1px solid #0284c7; border-radius:10px; padding:12px 14px; margin-bottom:14px; box-shadow:0 0 15px rgba(2,132,199,0.2);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div>
+              <div style="font-size:0.88rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:6px;">
+                <span style="display:inline-block; width:8px; height:8px; background:#10b981; border-radius:50%; box-shadow:0 0 8px #10b981;"></span>
+                Сессия серийной приемки активна
+              </div>
+              <div style="font-size:0.75rem; color:#94a3b8; margin-top:2px;">
+                Принято: <strong id="sessionCountText" style="color:#38bdf8;">0</strong> партий (<strong id="sessionWeightText" style="color:#34d399;">0.0</strong> кг)
+              </div>
+            </div>
+            <button type="button" class="btn-action" style="background:#10b981; color:#090d16; border:none; font-weight:700; padding:8px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px;" onclick="finishScanSession()">
+              <span>🏁</span> Всё добавил, завершить
+            </button>
+          </div>
+        </div>
+
         <div class="scanner-box">
           <div style="font-weight:700; font-size:0.95rem; color:#fff; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
             <span>📟 Сканирование штрихкода / PLU</span>
             <span style="font-size:0.75rem; color:var(--accent); font-weight:600;">EAN-13, QR, Code-128</span>
+          </div>
+
+          <!-- Режим серийного сканирования -->
+          <div style="margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; background:rgba(15,23,42,0.6); padding:8px 12px; border-radius:8px; border:1px solid var(--card-border);">
+            <label for="autoRescanToggle" style="display:flex; align-items:center; gap:8px; font-size:0.82rem; color:#cbd5e1; cursor:pointer;">
+              <input type="checkbox" id="autoRescanToggle" checked style="width:16px; height:16px; accent-color:var(--accent); cursor:pointer;" />
+              <span>🔁 <strong>Серийное сканирование</strong> (камера сразу для следующего)</span>
+            </label>
+            <button type="button" id="btnFinishQuick" style="display:none; background:none; border:1px solid #10b981; color:#34d399; font-size:0.75rem; padding:3px 8px; border-radius:6px; cursor:pointer; font-weight:700;" onclick="finishScanSession()">
+              ✓ Завершить
+            </button>
           </div>
 
           <!-- Кнопка вызова камеры -->
@@ -831,9 +860,17 @@ export function renderDashboardHtml(config: AppConfig): string {
             </div>
           </div>
 
-          <button type="submit" class="btn-primary" style="margin-top: 8px;">
-            <span>📥</span> Принять партию на склад (кг)
-          </button>
+          <div style="display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;">
+            <button type="submit" id="btnSubmitNext" class="btn-primary" style="flex:2; min-width:180px;">
+              <span>➕</span> Принять и сканировать следующий
+            </button>
+            <button type="button" class="btn-action" style="flex:1; min-width:130px; font-weight:700; background:#1e293b; padding:12px 14px;" onclick="saveAndGoToWarehouse()">
+              <span>💾</span> На склад
+            </button>
+            <button type="button" id="btnFinishForm" class="btn-action" style="display:none; flex:1; min-width:150px; font-weight:700; background:#064e3b; color:#34d399; border-color:#059669; padding:12px 14px;" onclick="finishScanSession()">
+              <span>🏁</span> Всё добавил
+            </button>
+          </div>
         </form>
       </div>
     </section>
@@ -1053,6 +1090,9 @@ export function renderDashboardHtml(config: AppConfig): string {
       currentRole = '';
       currentToken = '';
       allItems = [];
+      sessionAddedCount = 0;
+      sessionAddedWeight = 0;
+      updateSessionBar();
       updateRoleBadge();
       const itemsContainer = document.getElementById('itemsContainer');
       if (itemsContainer) itemsContainer.innerHTML = '';
@@ -1665,8 +1705,55 @@ export function renderDashboardHtml(config: AppConfig): string {
       }).join('');
     }
 
-    async function handleAddItem(e) {
-      e.preventDefault();
+    let sessionAddedCount = 0;
+    let sessionAddedWeight = 0;
+
+    function updateSessionBar() {
+      const bar = document.getElementById('scanSessionBar');
+      const countEl = document.getElementById('sessionCountText');
+      const weightEl = document.getElementById('sessionWeightText');
+      const quickBtn = document.getElementById('btnFinishQuick');
+      const formFinishBtn = document.getElementById('btnFinishForm');
+
+      if (sessionAddedCount > 0) {
+        if (bar) bar.style.display = 'block';
+        if (quickBtn) quickBtn.style.display = 'inline-block';
+        if (formFinishBtn) formFinishBtn.style.display = 'inline-flex';
+        if (countEl) countEl.textContent = sessionAddedCount;
+        if (weightEl) weightEl.textContent = sessionAddedWeight.toFixed(1);
+      } else {
+        if (bar) bar.style.display = 'none';
+        if (quickBtn) quickBtn.style.display = 'none';
+        if (formFinishBtn) formFinishBtn.style.display = 'none';
+      }
+    }
+
+    function finishScanSession() {
+      stopCameraScanner();
+      const count = sessionAddedCount;
+      const weight = sessionAddedWeight.toFixed(1);
+
+      sessionAddedCount = 0;
+      sessionAddedWeight = 0;
+      updateSessionBar();
+
+      if (count > 0) {
+        showToast('🎉 Приемка завершена! Добавлено: ' + count + ' партий (' + weight + ' кг)');
+      } else {
+        showToast('Приемка завершена');
+      }
+
+      switchTab('items');
+    }
+
+    function saveAndGoToWarehouse() {
+      const form = document.getElementById('addItemForm');
+      if (form && !form.reportValidity()) return;
+      handleAddItem(new Event('submit'), true);
+    }
+
+    async function handleAddItem(e, andGoToWarehouse = false) {
+      if (e && e.preventDefault) e.preventDefault();
       const descVal = document.getElementById('addDescription').value.trim();
       const item = {
         name: document.getElementById('addName').value.trim(),
@@ -1698,12 +1785,26 @@ export function renderDashboardHtml(config: AppConfig): string {
           return;
         }
 
-        showToast('Партия "' + data.name + '" (' + data.quantity + ' кг) принята!');
+        sessionAddedCount++;
+        sessionAddedWeight += (Number(data.quantity) || 0);
+        updateSessionBar();
+
         document.getElementById('addItemForm').reset();
         document.getElementById('catalogMatchAlert').style.display = 'none';
         initAddForm();
         loadCatalogData();
-        switchTab('items');
+
+        const autoRescan = document.getElementById('autoRescanToggle')?.checked;
+
+        if (andGoToWarehouse || !autoRescan) {
+          finishScanSession();
+        } else {
+          showToast('✅ Принято: ' + data.name + ' (' + data.quantity + ' кг). Сканируйте следующий!');
+          clearPluInput();
+          setTimeout(() => {
+            startCameraScanner();
+          }, 350);
+        }
       } catch (err) {
         showToast('Ошибка сети: ' + err.message, true);
       }

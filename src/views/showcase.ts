@@ -244,16 +244,17 @@ export function renderShowcaseHtml(config: AppConfig): string {
     }
     .prod-specs {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
       background: #0d1322;
-      padding: 8px 12px;
+      padding: 8px 10px;
       border-radius: 8px;
       border: 1px solid var(--card-border);
+      text-align: center;
     }
     .spec-item { display: flex; flex-direction: column; }
-    .spec-label { color: var(--text-muted); font-size: 0.7rem; }
-    .spec-val { color: #fff; font-weight: 700; font-size: 0.92rem; }
+    .spec-label { color: var(--text-muted); font-size: 0.68rem; margin-bottom: 2px; }
+    .spec-val { color: #fff; font-weight: 700; font-size: 0.84rem; white-space: nowrap; }
     .exp-pill {
       font-size: 0.78rem;
       padding: 6px 10px;
@@ -540,7 +541,11 @@ export function renderShowcaseHtml(config: AppConfig): string {
                 <span class="spec-val" style="color:var(--accent);">\${item.quantity} кг</span>
               </div>
               <div class="spec-item">
-                <span class="spec-label">Срок до</span>
+                <span class="spec-label">Дата пр-ва</span>
+                <span class="spec-val">\${item.date.start || '—'}</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Годен до</span>
                 <span class="spec-val">\${item.date.end}</span>
               </div>
             </div>
